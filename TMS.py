@@ -1,6 +1,9 @@
 import math
+import datetime
+import getpass
 
-decimal = input("Введите децимальный номер кабеля (ИВУА.444444.444): ")
+
+decimal = ""
 wire_dict = {}
 tms_sce = {"1.90": {"0.81": "TMS-SCE-1K-3/32-2.0-9         2.36     0.79     0000154314"},
            "2.66": {"1.11": "TMS-SCE-1K-1/8-2.0-9          3.18     1.07     0000112634"},
@@ -19,12 +22,39 @@ count_type_wire = 0
 name_parts = ""
 diam_type_wire = 0
 count_num_type_wire = 1
+choice = ""
+
+
+def main_tms():
+    global decimal
+    action = True
+    while action:
+        foolproof_choice()
+        if choice == "Да":
+            decimal = input("Введите децимальный номер кабеля (ИВУА.444444.444): ")
+            num_of_parts()
+        else:
+            action = False
+            print("See you later")
+
+
+def foolproof_choice():
+    global choice
+    bool_choice = True
+    choice = input("Хотите посчитать диаметр жгута в кабеле по ГОСТ 23586-96? (Да/Нет) ").lower().title()
+    while bool_choice:
+        if choice == "Да" or choice == "Нет":
+            bool_choice = False
+        else:
+            print('Нужно выбрать "Да" или "Нет"!')
+            choice = input("Хотите посчитать диаметр жгута в кабеле по ГОСТ 23586-96? (Да/Нет) ").lower().title()
+    return choice
 
 
 def num_of_parts():
     foolproof_num_parts()
     count_num_parts = 1
-    with open(f"{decimal}.txt", "wt") as f:
+    with open(f"C:\\Users\\{getpass.getuser()}\\Desktop\\{decimal}.txt", "wt") as f:
         f.write(f"Расчет произведен согласно ГОСТ 23586-96.\n"
                 f"\n")
     while count_num_parts <= num_parts:
@@ -33,6 +63,7 @@ def num_of_parts():
     diameter_cable()
     print()
     tms_choice()
+    foolproof_file()
     save_file()
 
 
@@ -83,7 +114,7 @@ def foolproof_num_type_wire():
 def foolproof_diam_type_wire():
     global diam_type_wire
     bool_diam_type_wire = True
-    diam_type_wire = input(f"Введите диаметр {count_num_type_wire} провода: ")
+    diam_type_wire = input(f"Введите диаметр {count_num_type_wire} провода: ").replace(",", ".")
     while bool_diam_type_wire:
         try:
             diam_type_wire = float(diam_type_wire)
@@ -120,20 +151,29 @@ def tms_choice():
               f"Dср = {wire_dict[i]['Dср']}мм, "
               f"n = {wire_dict[i]['n']}, "
               f"D = {wire_dict[i]['D']}мм "
-              f"- определения согласно ГОСТ 23586-96"
               f"\n")
         print("Тип трубки                    MAX      MIN       Код PDM \n")
         for j in tms_sce:
             for k in tms_sce[j]:
                 if float(k) < wire_dict[i]["D"] < float(j):
                     print(tms_sce[j][k])
-        print("\n")
+
+
+def foolproof_file():
+    try:
+        with open(f"C:\\Users\\{getpass.getuser()}\\Desktop\\{decimal}.txt", "r") as f:
+            f.read()
+            print(f"\nФайл {decimal}.txt записан на рабочем столе текущего пользователя\n")
+    except FileNotFoundError:
+        print("\nФайл будет записан в полной версии программы. Самое время задонатить автору\n")
+    except UnicodeEncodeError:
+        print("\nФайл будет записан в полной версии программы. Самое время задонатить автору\n")
 
 
 def save_file():
-    with open(f"{decimal}.txt", "at") as f:
+    with open(f"C:\\Users\\{getpass.getuser()}\\Desktop\\{decimal}.txt", "at") as f:
         for i in wire_dict:
-            f.write(f"Для участка жгута {i}:\n"
+            f.write(f"Для участка жгута {i}:"
                     f"Dср = {wire_dict[i]['Dср']}, "
                     f"n = {wire_dict[i]['n']}, "
                     f"D = {wire_dict[i]['D']}.\n"
@@ -147,6 +187,8 @@ def save_file():
                     if float(k) < wire_dict[i]["D"] < float(j):
                         f.write(f"{tms_sce[j][k]}\n")
             f.write("\n\n")
+        f.write("Файл был записан ")
+        f.write(datetime.datetime.now().strftime("%d.%m.%Y в %H:%M"))
 
 
-num_of_parts()
+main_tms()
